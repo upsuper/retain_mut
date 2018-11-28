@@ -1,0 +1,13 @@
+[package]
+name = "retain_mut"
+version = "0.1.0"
+authors = ["Xidorn Quan <me@upsuper.org>"]
+
+description = "Provide retain_mut method that has the same functionality as retain but gives mutable borrow to the predicate."
+license = "MIT"
+repository = "https://github.com/upsuper/retain_mut"
+categories = ["rust-patterns"]
+keywords = ["retain"]
+readme = "README.md"
+
+[dependencies]
