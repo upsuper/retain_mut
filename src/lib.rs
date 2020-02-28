@@ -1,12 +1,10 @@
-use std::ptr;
-
 /// Trait that provides `retain_mut` method.
 pub trait RetainMut<T> {
-    /// Retains only the elements specified by the predicate with a mutable borrow.
+    /// Retains only the elements specified by the predicate.
     ///
-    /// In other words, remove all elements `e` such that `f(&mut e)` returns `false`.
-    /// This method operates in place and preserves the order of the retained
-    /// elements.
+    /// In other words, remove all elements `e` such that `f(&e)` returns `false`.
+    /// This method operates in place, visiting each element exactly once in the
+    /// original order, and preserves the order of the retained elements.
     ///
     /// # Examples
     ///
@@ -24,7 +22,7 @@ pub trait RetainMut<T> {
 
 impl<T> RetainMut<T> for Vec<T> {
     // The implementation is based on
-    // https://github.com/rust-lang/rust/blob/a67749ae87b1c873ed09fca2a204beff2fe5e7ea/src/liballoc/vec.rs#L804-L829
+    // https://github.com/rust-lang/rust/blob/0eb878d2aa6e3a1cb315f3f328681b26bb4bffdb/src/liballoc/vec.rs#L1072-L1093
     fn retain_mut<F>(&mut self, mut f: F)
     where
         F: FnMut(&mut T) -> bool,
@@ -33,23 +31,17 @@ impl<T> RetainMut<T> for Vec<T> {
         let mut del = 0;
         {
             let v = &mut **self;
+
             for i in 0..len {
                 if !f(&mut v[i]) {
                     del += 1;
-                    unsafe {
-                        ptr::drop_in_place(&mut v[i]);
-                    }
                 } else if del > 0 {
-                    let src: *const T = &v[i];
-                    let dst: *mut T = &mut v[i - del];
-                    unsafe {
-                        ptr::copy_nonoverlapping(src, dst, 1);
-                    }
+                    v.swap(i - del, i);
                 }
             }
         }
-        unsafe {
-            self.set_len(len - del);
+        if del > 0 {
+            self.truncate(len - del);
         }
     }
 }
