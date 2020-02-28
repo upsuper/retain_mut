@@ -17,7 +17,9 @@ pub trait RetainMut<T> {
     /// vec.retain_mut(|x| { *x *= 3; *x % 2 == 0 });
     /// assert_eq!(vec, [6, 12]);
     /// ```
-    fn retain_mut<F>(&mut self, f: F) where F: FnMut(&mut T) -> bool;
+    fn retain_mut<F>(&mut self, f: F)
+    where
+        F: FnMut(&mut T) -> bool;
 }
 
 impl<T> RetainMut<T> for Vec<T> {
