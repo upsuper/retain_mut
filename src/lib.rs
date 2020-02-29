@@ -1,3 +1,35 @@
+//! This crate provides trait `RetainMut` which
+//! provides `retain_mut` method for `Vec` and `VecDeque`.
+//!
+//! `retain_mut` is basically the same as `retain` except that
+//! it gives mutable reference of items to the predicate function.
+//!
+//! Since there is no reason `retain` couldn't have been designed this way,
+//! this crate basically just copies the code from std with minor (1-line) change
+//! to hand out mutable reference.
+//! The code these impls are based on can be found in code comments of this crate.
+//!
+//! # Examples
+//!
+//! ## `Vec`
+//!
+//! ```
+//! # use retain_mut::RetainMut;
+//! let mut vec = vec![1, 2, 3, 4];
+//! vec.retain_mut(|x| { *x *= 3; *x % 2 == 0 });
+//! assert_eq!(vec, [6, 12]);
+//! ```
+//!
+//! ## `VecDeque`
+//!
+//! ```
+//! # use retain_mut::RetainMut;
+//! # use std::collections::VecDeque;
+//! let mut deque = VecDeque::from(vec![1, 2, 3, 4]);
+//! deque.retain_mut(|x| { *x *= 3; *x % 2 == 0 });
+//! assert_eq!(deque, [6, 12]);
+//! ```
+
 use std::collections::VecDeque;
 
 /// Trait that provides `retain_mut` method.
@@ -7,28 +39,6 @@ pub trait RetainMut<T> {
     /// In other words, remove all elements `e` such that `f(&e)` returns `false`.
     /// This method operates in place, visiting each element exactly once in the
     /// original order, and preserves the order of the retained elements.
-    ///
-    /// # Examples
-    ///
-    /// ## `Vec`
-    ///
-    /// ```
-    /// # use retain_mut::RetainMut;
-    /// let mut vec = vec![1, 2, 3, 4];
-    /// vec.retain_mut(|x| { *x *= 3; *x % 2 == 0 });
-    /// assert_eq!(vec, [6, 12]);
-    /// ```
-    ///
-    /// ## VecDeque
-    ///
-    /// ```
-    /// # use retain_mut::RetainMut;
-    /// # use std::collections::VecDeque;
-    /// # use std::iter::FromIterator;
-    /// let mut deque = VecDeque::from_iter(vec![1, 2, 3, 4]);
-    /// deque.retain_mut(|x| { *x *= 3; *x % 2 == 0 });
-    /// assert_eq!(deque, [6, 12]);
-    /// ```
     fn retain_mut<F>(&mut self, f: F)
     where
         F: FnMut(&mut T) -> bool;
