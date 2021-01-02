@@ -30,7 +30,12 @@
 //! assert_eq!(deque, [6, 12]);
 //! ```
 
-use std::collections::VecDeque;
+#![no_std]
+
+extern crate alloc;
+
+use alloc::collections::vec_deque::VecDeque;
+use alloc::vec::Vec;
 
 /// Trait that provides `retain_mut` method.
 pub trait RetainMut<T> {
