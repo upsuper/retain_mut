@@ -9,9 +9,13 @@
 //! to hand out mutable reference.
 //! The code these impls are based on can be found in code comments of this crate.
 //!
-//! # Examples
+//! This was probably a historical mistake in Rust library,
+//! that `retain` should do this at the very beginning.
+//! See [rust-lang/rust#25477](https://github.com/rust-lang/rust/issues/25477).
 //!
-//! ## `Vec`
+//! ## Examples
+//!
+//! ### `Vec`
 //!
 //! ```
 //! # use retain_mut::RetainMut;
@@ -20,7 +24,7 @@
 //! assert_eq!(vec, [6, 12]);
 //! ```
 //!
-//! ## `VecDeque`
+//! ### `VecDeque`
 //!
 //! ```
 //! # use retain_mut::RetainMut;

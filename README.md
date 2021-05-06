@@ -1,5 +1,7 @@
 # RetainMut
 
+<!-- cargo-sync-readme start -->
+
 This crate provides trait `RetainMut` which
 provides `retain_mut` method for `Vec` and `VecDeque`.
 
@@ -32,3 +34,5 @@ let mut deque = VecDeque::from(vec![1, 2, 3, 4]);
 deque.retain_mut(|x| { *x *= 3; *x % 2 == 0 });
 assert_eq!(deque, [6, 12]);
 ```
+
+<!-- cargo-sync-readme end -->
