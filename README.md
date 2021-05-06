@@ -7,7 +7,7 @@ provides `retain_mut` method for `Vec` and `VecDeque`.
 it gives mutable reference of items to the predicate function.
 
 Since there is no reason `retain` couldn't have been designed this way,
-this crate basically just copies the code from std with minor (1-line) change
+this crate basically just copies the code from std with minor changes
 to hand out mutable reference.
 The code these impls are based on can be found in code comments of this crate.
 
