@@ -17,6 +17,11 @@ This was probably a historical mistake in Rust library,
 that `retain` should do this at the very beginning.
 See [rust-lang/rust#25477](https://github.com/rust-lang/rust/issues/25477).
 
+## Compatibility
+
+Use `features = ["std"]` for compatibility with Rust version earlier than 1.36,
+as `no_std` requires `alloc` crate to be stable.
+
 ## Examples
 
 ### `Vec`

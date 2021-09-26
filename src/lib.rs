@@ -13,6 +13,11 @@
 //! that `retain` should do this at the very beginning.
 //! See [rust-lang/rust#25477](https://github.com/rust-lang/rust/issues/25477).
 //!
+//! ## Compatibility
+//!
+//! Use `features = ["std"]` for compatibility with Rust version earlier than 1.36,
+//! as `no_std` requires `alloc` crate to be stable.
+//!
 //! ## Examples
 //!
 //! ### `Vec`
@@ -34,13 +39,22 @@
 //! assert_eq!(deque, [6, 12]);
 //! ```
 
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
+#[cfg(not(feature = "std"))]
 use alloc::collections::vec_deque::VecDeque;
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
+#[cfg(not(feature = "std"))]
 use core::ptr;
+
+#[cfg(feature = "std")]
+use std::collections::VecDeque;
+#[cfg(feature = "std")]
+use std::ptr;
 
 /// Trait that provides `retain_mut` method.
 pub trait RetainMut<T> {
@@ -91,7 +105,9 @@ impl<T> RetainMut<T> for Vec<T> {
                     unsafe {
                         ptr::copy(
                             self.v.as_ptr().add(self.processed_len),
-                            self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
+                            self.v
+                                .as_mut_ptr()
+                                .add(self.processed_len - self.deleted_cnt),
                             self.original_len - self.processed_len,
                         );
                     }
@@ -103,7 +119,12 @@ impl<T> RetainMut<T> for Vec<T> {
             }
         }
 
-        let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
+        let mut g = BackshiftOnDrop {
+            v: self,
+            processed_len: 0,
+            deleted_cnt: 0,
+            original_len,
+        };
 
         while g.processed_len < original_len {
             // SAFETY: Unchecked element must be valid.
