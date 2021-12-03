@@ -58,9 +58,9 @@ use std::ptr;
 
 /// Trait that provides `retain_mut` method.
 pub trait RetainMut<T> {
-    /// Retains only the elements specified by the predicate.
+    /// Retains only the elements specified by the predicate, passing a mutable reference to it.
     ///
-    /// In other words, remove all elements `e` such that `f(&e)` returns `false`.
+    /// In other words, remove all elements `e` such that `f(&mut e)` returns `false`.
     /// This method operates in place, visiting each element exactly once in the
     /// original order, and preserves the order of the retained elements.
     fn retain_mut<F>(&mut self, f: F)
@@ -70,7 +70,7 @@ pub trait RetainMut<T> {
 
 impl<T> RetainMut<T> for Vec<T> {
     // The implementation is based on
-    // https://github.com/rust-lang/rust/blob/1d99508b52499c9efd213738e71927458c1d394e/library/alloc/src/vec/mod.rs#L1435-L1508
+    // https://github.com/rust-lang/rust/blob/3e21768a0a3fc84befd1cbe825ae6849e9941b73/library/alloc/src/vec/mod.rs#L1475-L1569
     fn retain_mut<F>(&mut self, mut f: F)
     where
         F: FnMut(&mut T) -> bool,
@@ -126,7 +126,12 @@ impl<T> RetainMut<T> for Vec<T> {
             original_len,
         };
 
-        while g.processed_len < original_len {
+        // process_one return a bool indicates whether the processing element should be retained.
+        #[inline(always)]
+        fn process_one<F, T, const DELETED: bool>(f: &mut F, g: &mut BackshiftOnDrop<'_, T>) -> bool
+        where
+            F: FnMut(&mut T) -> bool,
+        {
             // SAFETY: Unchecked element must be valid.
             let cur = unsafe { &mut *g.v.as_mut_ptr().add(g.processed_len) };
             if !f(cur) {
@@ -136,9 +141,9 @@ impl<T> RetainMut<T> for Vec<T> {
                 // SAFETY: We never touch this element again after dropped.
                 unsafe { ptr::drop_in_place(cur) };
                 // We already advanced the counter.
-                continue;
+                return false;
             }
-            if g.deleted_cnt > 0 {
+            if DELETED {
                 // SAFETY: `deleted_cnt` > 0, so the hole slot must not overlap with current element.
                 // We use copy for move, and never touch this element again.
                 unsafe {
@@ -147,6 +152,19 @@ impl<T> RetainMut<T> for Vec<T> {
                 }
             }
             g.processed_len += 1;
+            return true;
+        }
+
+        // Stage 1: Nothing was deleted.
+        while g.processed_len != original_len {
+            if !process_one::<F, T, false>(&mut f, &mut g) {
+                break;
+            }
+        }
+
+        // Stage 2: Some elements were deleted.
+        while g.processed_len != original_len {
+            process_one::<F, T, true>(&mut f, &mut g);
         }
 
         // All item are processed. This can be optimized to `set_len` by LLVM.
@@ -156,22 +174,38 @@ impl<T> RetainMut<T> for Vec<T> {
 
 impl<T> RetainMut<T> for VecDeque<T> {
     // The implementation is based on
-    // https://github.com/rust-lang/rust/blob/0eb878d2aa6e3a1cb315f3f328681b26bb4bffdb/src/liballoc/collections/vec_deque.rs#L1978-L1995
+    // https://github.com/rust-lang/rust/blob/3e21768a0a3fc84befd1cbe825ae6849e9941b73/library/alloc/src/collections/vec_deque/mod.rs#L2148-L2180
     fn retain_mut<F>(&mut self, mut f: F)
     where
         F: FnMut(&mut T) -> bool,
     {
         let len = self.len();
-        let mut del = 0;
-        for i in 0..len {
-            if !f(&mut self[i]) {
-                del += 1;
-            } else if del > 0 {
-                self.swap(i - del, i);
+        let mut idx = 0;
+        let mut cur = 0;
+
+        // Stage 1: All values are retained.
+        while cur < len {
+            if !f(&mut self[cur]) {
+                cur += 1;
+                break;
             }
+            cur += 1;
+            idx += 1;
         }
-        if del > 0 {
-            self.truncate(len - del);
+        // Stage 2: Swap retained value into current idx.
+        while cur < len {
+            if !f(&mut self[cur]) {
+                cur += 1;
+                continue;
+            }
+
+            self.swap(idx, cur);
+            cur += 1;
+            idx += 1;
+        }
+        // Stage 3: Trancate all values after idx.
+        if cur != idx {
+            self.truncate(idx);
         }
     }
 }
