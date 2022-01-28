@@ -13,10 +13,9 @@
 //! that `retain` should do this at the very beginning.
 //! See [rust-lang/rust#25477](https://github.com/rust-lang/rust/issues/25477).
 //!
-//! ## Compatibility
-//!
-//! Use `features = ["std"]` for compatibility with Rust version earlier than 1.36,
-//! as `no_std` requires `alloc` crate to be stable.
+//! From Rust 1.58, an unstable `retain_mut` method has been added to the std, see
+//! [rust-lang/rust#90829](https://github.com/rust-lang/rust/issues/90829).
+//! Once it gets stabilized, you can simply remove this crate.
 //!
 //! ## Examples
 //!
@@ -39,22 +38,13 @@
 //! assert_eq!(deque, [6, 12]);
 //! ```
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 
-#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(not(feature = "std"))]
 use alloc::collections::vec_deque::VecDeque;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-#[cfg(not(feature = "std"))]
 use core::ptr;
-
-#[cfg(feature = "std")]
-use std::collections::VecDeque;
-#[cfg(feature = "std")]
-use std::ptr;
 
 /// Trait that provides `retain_mut` method.
 pub trait RetainMut<T> {
