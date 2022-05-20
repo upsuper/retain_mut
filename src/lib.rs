@@ -1,3 +1,8 @@
+//! **This crate has been deprecated.
+//! Rust 1.61 stabilized `retain_mut` for `Vec` and `VecDeque`,
+//! so you can use them directly.
+//! This crate is no longer maintained.**
+//!
 //! This crate provides trait `RetainMut` which
 //! provides `retain_mut` method for `Vec` and `VecDeque`.
 //!
