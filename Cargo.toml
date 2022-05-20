@@ -1,6 +1,6 @@
 [package]
 name = "retain_mut"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["Xidorn Quan <me@upsuper.org>"]
 
 description = "Provide retain_mut method that has the same functionality as retain but gives mutable borrow to the predicate."

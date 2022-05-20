@@ -47,6 +47,7 @@ use alloc::vec::Vec;
 use core::ptr;
 
 /// Trait that provides `retain_mut` method.
+#[deprecated = "Rust 1.61 has included retain_mut directly"]
 pub trait RetainMut<T> {
     /// Retains only the elements specified by the predicate, passing a mutable reference to it.
     ///
